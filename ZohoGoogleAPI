@@ -1,0 +1,61 @@
+Record_Data = zoho.crm.getRecordById("Products",id);
+//info"Record Data == "+Record_Data;
+Put_Map = Map();
+Job_address = Record_Data.get("Job_Address");
+info "Job Address == " + Job_address;
+data = Map();
+data.put("address",Job_address);
+apiKey = "AIzaSyCmxsxKYdr891vDuVSSLPWnSFnpwEI--IY";
+geoUrl = 'https://maps.googleapis.com/maps/api/geocode/json?key=' + apiKey + '&address=' + zoho.encryption.urlencode(data);
+//info "GeoURl = " + geoUrl;
+info "data record == " + data;
+response = invokeurl
+[
+	url :geoUrl
+	type :POST
+	parameters:data
+];
+info "data record after  == " + data;
+//info"Response == "+response;
+valueMap = {"attemptedAddress":data,"rawGoogleResponse":response};
+results = response.get('results').get(0);
+// info valueMap;
+// info"result = "+results;
+addressComponents = results.get('address_components');
+info "Address Verified = " + addressComponents;
+Street_longname = addressComponents.getJSON("long_name");
+info "Street_longname == " + Street_longname;
+Street_type = addressComponents.getJSON("types");
+info "Street_type == " + Street_type;
+Route_longname = addressComponents.get(1).getJSON("long_name");
+info "Route_longname == " + Route_longname;
+Route_types = addressComponents.get(1).getJSON("types");
+info "Route_types == " + Route_types;
+if(Street_type == "street_number" && Route_types == "route")
+{
+	Street_Address = Street_longname + " " + Route_longname;
+	info " Street Address " + Street_Address;
+	Put_Map.put("Street_Number",Street_Address);
+}
+Suburb_longname = addressComponents.get(2).getJSON("long_name");
+info "Suburb_longname == " + Suburb_longname;
+Suburb_types = addressComponents.get(2).getJSON("types");
+info "Suburb_types == " + Suburb_types;
+Put_Map.put("Job_Suburb",Suburb_longname);
+State_longname = addressComponents.get(4).getJSON("short_name");
+info "State_longname == " + State_longname;
+State_types = addressComponents.get(4).getJSON("types");
+info "State_types == " + State_types;
+Put_Map.put("Job_State",State_longname);
+Country_longname = addressComponents.get(5).getJSON("long_name");
+info "Country_longname == " + Country_longname;
+Country_types = addressComponents.get(5).getJSON("types");
+info "Country_types == " + Country_types;
+Put_Map.put("Location",Country_longname);
+Postal_longname = addressComponents.get(6).getJSON("long_name");
+info "Postal_longname == " + Postal_longname;
+Postal_types = addressComponents.get(6).getJSON("types");
+info "Postal_types == " + Postal_types;
+Put_Map.put("Job_Postcode",Postal_longname);
+Update_Record = zoho.crm.updateRecord("Products",id,Put_Map);
+info "Updated Record == " + Update_Record;
